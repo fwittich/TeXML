@@ -20,7 +20,7 @@ public class TeXTemplateService {
 	private static final String CMD_EXE = "cmd.exe";
 	private static final String CMD_OPTION = "/c";
 
-	private static final String VARIABLES_STRING_FORMAT = "\\def \\%s{%s}"; // \def \myCommand{Value}
+	private static final String VARIABLES_STRING_FORMAT = "\\def \\%s{%s} %n"; // \def \myCommand{Value}
 	private static final String VARIABLES_FILENAME = "Variables.tex";
 	
 	@Value("${application.tex.outputDirectory}")
@@ -30,13 +30,15 @@ public class TeXTemplateService {
 	private String templateDirectory;
 
 
-	public void produceFiles(String template, Map<String, String> variables, String outputFolder) throws IOException {
+	public void produceFiles(String template, Map<String, String> variables, String outputFolder) throws IOException {		
 		final File outputDirectoryFile = new File(outputDirectory, outputFolder);
 		
 		ProcessBuilder processBuilder = 
 			new ProcessBuilder(CMD_EXE, CMD_OPTION, buildTeXCommands(template, outputDirectoryFile)) //
 			.inheritIO() //
 			.directory(new File(getClass().getResource(templateDirectory).getFile()));
+		
+		System.out.println(processBuilder.command());
 		
 		try {
 			createVariablesFile(variables, outputDirectoryFile);
@@ -64,16 +66,16 @@ public class TeXTemplateService {
 		FileWriter fileWriter = new FileWriter(file);
 		PrintWriter printWriter = new PrintWriter(fileWriter);
 		variables.entrySet().stream()
-			.forEach(entry -> printWriter.printf(VARIABLES_STRING_FORMAT, entry.getKey(), entry.getValue()));
+			.forEach(entry -> 
+				printWriter.printf(VARIABLES_STRING_FORMAT, entry.getKey(), entry.getValue()));
 		printWriter.close();
 	}
 	
 	private String buildTeXCommands(String fileName, File outputDirectory) {
-		String commands = Stream.of( //			
+		String commands = Stream.of( //		
 				"latex "+fileName+".tex -aux-directory="+outputDirectory.getAbsolutePath()+" -output-directory="+outputDirectory.getAbsolutePath(), //
-				"cd " + outputDirectory.getAbsolutePath(), //
-				"dvips "+fileName+".dvi", //
-				"ps2pdf "+fileName+".ps" //
+				"dvips "+outputDirectory.getAbsolutePath() + "\\" + fileName + ".dvi -o "+outputDirectory.getAbsolutePath() + "\\" + fileName +".ps", //
+				"ps2pdf "+outputDirectory.getAbsolutePath() + "\\" + fileName + ".ps" //
 		)//
 				.collect(Collectors.joining(" & "));
 		return commands;
