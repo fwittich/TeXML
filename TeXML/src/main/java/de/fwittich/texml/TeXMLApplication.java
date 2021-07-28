@@ -1,5 +1,6 @@
 package de.fwittich.texml;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,7 +27,7 @@ public class TeXMLApplication implements ApplicationRunner  {
 		String outputFolderName = getOutputFolderName(args);
 		Map<String, String> variables = getVariables(args);
 		
-		texTemplateService.produceFiles("Template01", variables, outputFolderName);
+		texTemplateService.produceFiles("Template01", Arrays.asList(OutputFormat.values()), variables, outputFolderName);
 	}
 
 	private Map<String, String> getVariables(ApplicationArguments args) {

@@ -4,16 +4,14 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 public class TeXTemplateService {
 	
@@ -23,6 +21,9 @@ public class TeXTemplateService {
 	private static final String VARIABLES_STRING_FORMAT = "\\def \\%s{%s} %n"; // \def \myCommand{Value}
 	private static final String VARIABLES_FILENAME = "Variables.tex";
 	
+	@Autowired
+	private TeXCommandBuilder commandBuilder;
+	
 	@Value("${application.tex.outputDirectory}")
 	private String outputDirectory;
 	
@@ -30,15 +31,13 @@ public class TeXTemplateService {
 	private String templateDirectory;
 
 
-	public void produceFiles(String template, Map<String, String> variables, String outputFolder) throws IOException {		
+	public void produceFiles(String template, List<OutputFormat> outputFormats, Map<String, String> variables, String outputFolder) throws IOException {		
 		final File outputDirectoryFile = new File(outputDirectory, outputFolder);
-		
+				
 		ProcessBuilder processBuilder = 
-			new ProcessBuilder(CMD_EXE, CMD_OPTION, buildTeXCommands(template, outputDirectoryFile)) //
+			new ProcessBuilder(CMD_EXE, CMD_OPTION, commandBuilder.buildTeXCommands(outputFormats, template, outputDirectoryFile)) //
 			.inheritIO() //
 			.directory(new File(getClass().getResource(templateDirectory).getFile()));
-		
-		System.out.println(processBuilder.command());
 		
 		try {
 			createVariablesFile(variables, outputDirectoryFile);
@@ -70,15 +69,7 @@ public class TeXTemplateService {
 				printWriter.printf(VARIABLES_STRING_FORMAT, entry.getKey(), entry.getValue()));
 		printWriter.close();
 	}
-	
-	private String buildTeXCommands(String fileName, File outputDirectory) {
-		String commands = Stream.of( //		
-				"latex "+fileName+".tex -aux-directory="+outputDirectory.getAbsolutePath()+" -output-directory="+outputDirectory.getAbsolutePath(), //
-				"dvips "+outputDirectory.getAbsolutePath() + "\\" + fileName + ".dvi -o "+outputDirectory.getAbsolutePath() + "\\" + fileName +".ps", //
-				"ps2pdf "+outputDirectory.getAbsolutePath() + "\\" + fileName + ".ps" //
-		)//
-				.collect(Collectors.joining(" & "));
-		return commands;
-	}
+
+
 
 }
