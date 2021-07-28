@@ -1,7 +1,60 @@
-\documentclass{article}
+\documentclass[parskip=half,
+fontsize=11pt,
+fromemail=true
+]{scrlttr2}
 
 \include{Variables}
 
+%\def \receivername{John Doe}
+%\def \receiverstreet{221B Baker Street}
+%\def \receivercity{London NW1 6XE}
+%\def \salutation{Mr.}
+%\def \lastname{Doe}
+%\def \invoice{1123581321}
+%\def \refundAmount{20 €}
+%\def \customerNumber{3141459265}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[osf]{libertine}
+\usepackage{microtype}
+
+\setkomavar{fromname}{\TeX ML Ltd.}
+\setkomavar{fromaddress}{Friedrichstraße 43-45 \\10117 Berlin} 
+\setkomavar{fromphone}{0123-456789}
+\setkomavar{fromemail}{business@TeXML.com}
+\setkomavar{backaddressseparator}{ $\cdot$ }
+
+
+\setkomafont{fromname}{\sffamily\LARGE}
+\setkomafont{fromaddress}{\sffamily}
+\setkomafont{pagenumber}{\sffamily}
+
+
+
+\setkomavar{customer}{\customerNumber}
+\setkomavar*{customer}{Customer Number}
+\setkomavar{invoice}{\invoice}
+\setkomavar*{invoice}{Invoice}
+\setkomavar{date}{Berlin, \today}
+
+\setkomavar{enclseparator}{: }
+
 \begin{document}
-Hello, my name is \myName .
+
+\begin{letter}{\sffamily\large{\receivername \\ \receiverstreet \\ \receivercity }}
+\setkomavar{subject}{RESPONSE TO INVOICE REVEIVED AFTER PAYMENT}
+
+\opening{Dear \salutation \lastname,}
+thank you for sending us your invoice.
+\\\\
+We have acknowledged your invoice and based on your contract are refunding you \refundAmount . 
+\\\\
+For further details see the attached description or call our service center.
+
+\closing{Best regards,}
+
+
+\end{letter}
+
 \end{document}
