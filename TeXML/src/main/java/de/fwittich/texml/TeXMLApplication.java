@@ -27,7 +27,7 @@ public class TeXMLApplication implements ApplicationRunner  {
 		String outputFolderName = getOutputFolderName(args);
 		Map<String, String> variables = getVariables(args);
 		
-		texTemplateService.produceFiles("Template01", Arrays.asList(OutputFormat.values()), variables, outputFolderName);
+		texTemplateService.produceFiles(Arrays.asList(OutputFormat.values()), variables, outputFolderName);
 	}
 
 	private Map<String, String> getVariables(ApplicationArguments args) {

@@ -11,37 +11,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import de.fwittich.texml.process.TeXProcessProvider;
+import de.fwittich.texml.template.TeXTemplateProvider;
+
 
 @Service
 public class TeXTemplateService {
 	
-	private static final String CMD_EXE = "cmd.exe";
-	private static final String CMD_OPTION = "/c";
-
 	private static final String VARIABLES_STRING_FORMAT = "\\def \\%s{%s} %n"; // \def \myCommand{Value}
 	private static final String VARIABLES_FILENAME = "Variables.tex";
 	
 	@Autowired
-	private TeXCommandBuilder commandBuilder;
+	private TeXProcessProvider processProvider;
+	
+	@Autowired
+	private TeXTemplateProvider templateProvider;
 	
 	@Value("${application.tex.outputDirectory}")
-	private String outputDirectory;
-	
-	@Value("${application.tex.templateDirectory}")
-	private String templateDirectory;
+	private File outputBaseDirectory;
 
 
-	public void produceFiles(String template, List<OutputFormat> outputFormats, Map<String, String> variables, String outputFolder) throws IOException {		
-		final File outputDirectoryFile = new File(outputDirectory, outputFolder);
-				
-		ProcessBuilder processBuilder = 
-			new ProcessBuilder(CMD_EXE, CMD_OPTION, commandBuilder.buildTeXCommands(outputFormats, template, outputDirectoryFile)) //
-			.inheritIO() //
-			.directory(new File(getClass().getResource(templateDirectory).getFile()));
-		
+	public void produceFiles(List<OutputFormat> outputFormats, Map<String, String> variables, String outputFolderName) throws IOException {		
+		final File outputDirectory = new File(outputBaseDirectory, outputFolderName);
+						
 		try {
-			createVariablesFile(variables, outputDirectoryFile);
-			Process process = processBuilder.start();
+			createVariablesFile(variables, outputDirectory);
+			Process process = processProvider.startProcess(outputFormats, templateProvider.getTemplate(), outputDirectory);
 			int exitVal = process.waitFor();
 			if (exitVal == 0) {
 				System.out.println("Success!");
