@@ -1,49 +1,54 @@
-package de.fwittich.texml;
+package de.fwittich.texml.process;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
-
+import de.fwittich.texml.OutputFormat;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
-public class TeXCommandBuilder {
-
-	private static final String LATEX_COMMAND_FORMAT = "latex %s.tex -aux-directory=%s -output-directory=%s";
-	private static final String PDFLATEX_COMMAND_FORMAT = "pdflatex %s.tex -aux-directory=%s -output-directory=%s";
+public abstract class AbstractTeXProcessProvider implements TeXProcessProvider {
+	
+	private static final String LATEX_COMMAND_FORMAT = "latex %s -aux-directory=%s -output-directory=%s -jobname=%s";
+	
+	private static final String PDFLATEX_COMMAND_FORMAT = "pdflatex %s -aux-directory=%s -output-directory=%s -jobname=%s";
+	
 	private static final String DVIPS_COMMAND_FORMAT = "dvips %s -o %s";
-
-	public String buildTeXCommands(List<OutputFormat> outputFormats, String fileName, File outputDirectory) {
+	
+	protected String buildTeXCommands(List<OutputFormat> outputFormats, File templateFile, File outputDirectory, String outputFileName) {
 		List<String> commandList = new ArrayList<>();
 
 		String outpath = outputDirectory.getAbsolutePath();
+		String templateFileName = templateFile.getName();
 
 		if (outputFormats.contains(OutputFormat.DVI) || outputFormats.contains(OutputFormat.PS)) {
 			commandList.add( //
 					String.format(LATEX_COMMAND_FORMAT, //
-							fileName, //
+							templateFileName, //
 							outpath, //
-							outpath) //
+							outpath, //
+							outputFileName //
+							) 
 			);
 		}
 
 		if (outputFormats.contains(OutputFormat.PS)) {
 			commandList.add( //
 					String.format(DVIPS_COMMAND_FORMAT, //
-							new File(outputDirectory, fileName + ".dvi").getAbsolutePath(), //
-							new File(outputDirectory, fileName + ".ps").getAbsolutePath()) //
+							new File(outputDirectory, outputFileName + ".dvi").getAbsolutePath(), //
+							new File(outputDirectory, outputFileName + ".ps").getAbsolutePath()) //
 			);
 		}
 
 		if (outputFormats.contains(OutputFormat.PDF)) {
 			commandList.add(String.format(PDFLATEX_COMMAND_FORMAT, //
-					fileName, //
+					templateFileName, //
 					outpath, //
-					outpath) //
+					outpath, //
+					outputFileName //
+					)
 			);
 		}
 		
